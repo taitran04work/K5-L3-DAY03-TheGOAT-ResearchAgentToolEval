@@ -123,3 +123,24 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: deduplicate_sources
+    description: "Loại nguồn trùng URL trong danh sách đã có trước khi format. Giữ bản đầu và metadata, bỏ fragment/tracking khi so sánh. Không dùng để tìm tin, đọc URL, xác minh sự thật hoặc gộp bài khác URL."
+    parameters:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          maxItems: 500
+          description: "Nguồn đã thu thập; mỗi item có URL HTTP(S). List rỗng hợp lệ."
+          items:
+            type: object
+            properties:
+              url: {type: string, minLength: 1}
+              title: {type: string}
+              summary: {type: string}
+              source: {type: string}
+              section: {type: string}
+            required: [url]
+      required: [items]
