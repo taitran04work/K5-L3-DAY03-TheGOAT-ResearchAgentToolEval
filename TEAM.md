@@ -89,7 +89,7 @@ Báo cáo chi tiết: [report/team/2A202603971_PhanDaoMinhQuan.md](report/team/2
 
 ### Bằng chứng
 
-- Run: `v0_B_base_openrouter_20261110T183429128095.json`, `v0_B_base_openrouter_20261110T185424076072.json` (`openai/gpt-4o-mini`; đã gỡ khỏi `runs/` ở `2ef5d75` vì khác model với v0–v4, xem lại bằng `git show b9c7075:starter_v0/runs/<tên file>`)
+- Run: `v0_B_base_openrouter_20261110T183429128095.json`, `v0_B_base_openrouter_20261110T185424076072.json` (`openai/gpt-4o-mini`; đã gỡ khỏi `runs/` ở `2ef5d75` vì khác model với v0–v4`)
 - File: `report/team/group_report.md` (mục 1, Phần A, B1, B2), `report/team/2A202603971_PhanDaoMinhQuan.md`
 - Commit: `bd20fcc` (CP0), `b9c7075` (CP1 baseline runs), `2c72281` (Phần A + giả thuyết v1 → v3), `0a651f2`, `d18eda0`, `f8455d2` (B1)
 
