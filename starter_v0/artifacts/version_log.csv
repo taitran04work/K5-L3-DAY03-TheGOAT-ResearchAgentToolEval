@@ -1,1 +1,2 @@
 version,author,changed_artifact,artifact_version,prompt_hash,tools_hash,reason,hypothesis,metric_before,metric_after,run_file
+v0,Tran Huu Tai,none,v0,eb1c8179815b,e69bc53ed884,baseline,starter chưa sửa; chạy 3 lần: 0.70 / 0.65 / 0.65,,0.65,runs/v0_B_base_openrouter_20261110T180823458004.json
