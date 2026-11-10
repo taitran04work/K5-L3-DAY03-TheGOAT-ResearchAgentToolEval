@@ -2,17 +2,19 @@
 
 ## Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: TheGOAT
 - Lớp: L3A / L3B
-- Repo nhóm: `K5-L3A-DAY03-TenNhom-ResearchAgentToolEval` hoặc `K5-L3B-DAY03-TenNhom-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
+- Repo nhóm: `K5-L3?-DAY03-TheGOAT-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
 - URL repo, nhánh nộp, commit chốt:
 
 ## Thành viên
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 |        |      |       |        |         |
-|   2 |        |      |       |        |         |
+|   1 | Trần Hữu Tài (nhóm trưởng) | 2A202603944 |  | taitran04work | Tester, Evaluator |
+|   2 | Lê Thế Anh | 2A202603983 |  | LETHESHIYING | Planner, Researcher |
+|   3 | Phan Đào Minh Quân | 2A202603971 |  | Shirou191 | Researcher |
+|   4 | Trần Duy Thành | 2A202603919 |  | thanh289 | Coder (BE, FE) |
 
 ## Cá nhân
 
