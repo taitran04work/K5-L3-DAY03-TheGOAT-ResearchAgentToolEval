@@ -10,7 +10,7 @@
 
 - Tên nhóm: TheGOAT
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:  Claude
+- Provider/model dùng cho v0–v3: `anthropic` / `claude-haiku-4-5-20251001` (model mặc định của provider, không truyền `--model`)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -70,18 +70,29 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline (chưa sửa) | Đo starter gốc (`p eb1c8179815b`, `t 52991d62c549`) | – | 0.85 | `starter_v0/runs/v0_B_base_anthropic_20261110T185714788317.json` |
+| v1 | `system_prompt.md` | Prompt bảo "đoán khi thiếu thông tin" → thay bằng: thiếu handle/URL thì gọi `clarify(response_type="text")`, tên người nổi tiếng thì tự map sang handle. Kỳ vọng sửa R10 | 0.85 | 0.90 | `starter_v0/runs/v1_B_base_anthropic_20261110T190337487498.json` |
+| v2 | `system_prompt.md` | Prompt bảo "gửi ngay" + "chỉ một bước" → thay bằng boundary `send` (`clarify` yes_no trước, `send(confirmed=true)` chỉ sau khi user đồng ý), rule scope, cho phép nhiều tool call. Kỳ vọng sửa R12 | 0.90 | 0.90 | `starter_v0/runs/v2_B_base_anthropic_20261110T190641839759.json` |
+| v3 | `system_prompt.md` | R12 ở v2 vẫn hỏi bằng `text` vì rule thiếu-info (v1) khớp trước rule send (v2) → thêm câu ưu tiên: yêu cầu gửi/đăng luôn dùng `yes_no` kể cả khi thiếu nội dung. Kỳ vọng sửa R12 | 0.90 | 0.90 | `starter_v0/runs/v3_B_base_anthropic_20261110T191540035836.json` |
+
+Nhận xét:
+
+- v1 là thay đổi duy nhất tăng điểm: R10 FAIL → PASS, không case nào hồi quy.
+- v2 và v3 **không** sửa được R12 dù đã thêm rule và rule ưu tiên. Ở cả hai run, model vẫn gọi `clarify(response_type="text")` hỏi "Bạn muốn đăng nội dung nào…". Giả thuyết "xung đột thứ tự rule trong prompt" bị bác bỏ một phần: thêm ưu tiên trong prompt chưa đủ. Giả thuyết tiếp theo: khai báo `clarify` trong `tools.yaml` chỉ mô tả `response_type` là "Kiểu trả lời", không nói khi nào dùng `yes_no` → sửa ở tool declaration (v4).
+- Ở v3, R03 ngoài lỗi query còn có thêm `extra tool call social_search`. Ở v2 R03 chỉ gọi `lookup`. Có thể đây là tác dụng phụ của rule "Use as many tool calls as the request needs" (thêm ở v2), hoặc là nhiễu giữa các lần chạy. Cần theo dõi ở version sau.
+- v1→v3 chỉ đổi prompt hash, tools hash giữ nguyên `52991d62c549`, đúng nguyên tắc mỗi version một thay đổi.
 
 ### B2. Failure Analysis
 
-Lấy từ `results[*].result.failures` trong run JSON.
+Lấy từ `results[*].result.failures` trong run JSON v0 (`starter_v0/runs/v0_B_base_anthropic_20261110T185714788317.json`).
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | `wrong_tool` (quan sát: `wrong_arg_value`) | `lookup(query="AI tin tức hôm nay", topic="news", timeframe="day", max_results=10)` | `query: expected 'AI', got 'AI tin tức hôm nay'`. Đã đúng `topic` và `timeframe` nhưng vẫn nhồi "tin tức hôm nay" vào query | `tools.yaml`: mô tả `query` chỉ chứa chủ đề, tin tức/thời gian đi vào `topic`/`timeframe` (v4) |
+| R10_missing_handle | `missing_info` (quan sát: `missing_tool_call`) | `timeline(screenname="elonmusk", limit=5)` | `missing tool call clarify`, `extra tool call timeline`. Làm theo prompt gốc "pick a well-known account", tự đoán Elon Musk | `system_prompt.md`: bỏ chỉ dẫn đoán, thiếu handle thì `clarify(text)` (v1, đã PASS) |
+| R12_confirm_before_send | `wrong_boundary` (quan sát: `wrong_arg_value`) | `clarify(question="Bản tin nào mà bạn muốn đăng lên Telegram?…", response_type="text")` | `response_type: expected 'yes_no', got 'text'`. Model không tự gửi mà hỏi lại nội dung, nhưng eval yêu cầu hỏi xác nhận yes/no | `system_prompt.md` boundary send (v2, v3: chưa PASS) → `tools.yaml` mô tả `clarify.response_type` và `send` (v4) |
+
+Ghi chú: với `claude-haiku-4-5`, prompt gốc chỉ làm hỏng 3/20 case. Model vẫn từ chối câu ngoài phạm vi (R08, R14), vẫn hỏi lại khi thiếu URL (R11) và không tự gọi `send` (R12), dù prompt gốc bảo làm ngược lại. R12 là case có thể tranh luận: hỏi lại nội dung khi user chỉ nói "bản tin này" cũng là một hành vi an toàn, nhưng eval chỉ chấp nhận `yes_no`.
 
 ### B3. Team Eval Cases
 
@@ -152,7 +163,12 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 > Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
 
--
+- **OpenRouter hết budget:** workspace OpenRouter có giới hạn $0.01/tháng. Sau vài lần chạy với `openai/gpt-4o-mini`, mọi request bị `403 - Workspace monthly budget of $0.01 exceeded`, run có `provider_error_cases = 20` nên không hợp lệ và đã bị loại. Thử model free (`google/gemma-4-31b-it:free`) thì bị `429 - Provider returned error`. Nhóm chuyển sang provider `anthropic` và chạy lại v0 để mọi version cùng một model.
+- **Bug tương thích SDK Anthropic:** `requirements.txt` chỉ ghi `anthropic>=0.34.0`, nên pip cài bản 2.7.0. Từ bản 1.0, `Messages.create()` không còn nhận `temperature`, trong khi `providers/anthropic_provider.py` vẫn truyền tham số này → `TypeError: Messages.create() got an unexpected keyword argument 'temperature'`. Cách xử lý: pin `anthropic<1` (bản 0.125.0 vẫn có `temperature`).
+- **Key tool sai:** run gpt-4o-mini đầu tiên có `timeline`/`social_search` lỗi `Missing RAPIDAPI_KEY` và `lookup` lỗi `401 Unauthorized` (Tavily). Eval chấm lựa chọn tool nên điểm không bị ảnh hưởng, nhưng nhóm sửa key trước khi chạy tiếp để log có dữ liệu thật.
+- **Kết quả không tất định:** với gpt-4o-mini, cùng prompt và cùng hash, hai lần chạy cho 0.70 và 0.65 (R03 lúc PASS lúc FAIL). Vì vậy nhóm so sánh từng case giữa các version thay vì chỉ nhìn điểm tổng.
+- **Hash đổi dù nội dung không đổi:** `tools.yaml` được lưu lại trong editor nên đổi line ending (LF/CRLF), hash đổi từ `e69bc53ed884` sang `52991d62c549` dù `git diff` rỗng. Vì vậy v0 được chạy lại để v0–v3 dùng chung tools hash.
+- **Gắn nhầm nhãn version:** có lần prompt v1 đã được commit nên `git stash` không đưa prompt về bản gốc, và run "v0" thực chất dùng prompt v1 (hash `p27bc123aba94`). Nhóm phát hiện bằng cách đối chiếu prompt hash trong mỗi run, xóa các run sai, rồi khôi phục prompt gốc bằng `git checkout 0fc07b6 -- artifacts/system_prompt.md`.
 
 ## 6. Tổng hợp đóng góp
 
