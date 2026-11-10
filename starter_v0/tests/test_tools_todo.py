@@ -110,13 +110,42 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_happy_path():
+    items = [{'url': 'https://EXAMPLE.com/a?utm_source=x#top', 'title': 'First'},
+             {'url': 'https://example.com/a', 'title': 'Second'},
+             {'url': 'https://example.com/b', 'title': 'Third'}]
+    r = TOOL_FUNCTIONS['deduplicate_sources'](items)
+    assert r['items'] == [items[0], items[2]]
+    assert (r['input_count'], r['item_count'], r['removed_count']) == (3, 2, 1)
+    assert r['duplicates'] == [{'index': 1, 'kept_index': 0}]
+    r['items'][0]['title'] = 'Changed'
+    assert items[0]['title'] == 'First'
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+@pytest.mark.parametrize('items', [None, '', {}, [1], [{}], [{'url': ''}],
+    [{'url': 1}], [{'url': 'file:///tmp/a'}], [{'url': 'https://u:p@example.com'}],
+    [{'url': 'https://example.com:bad'}], [{'url': 'https://example.com'}] * 501])
+def test_deduplicate_bad_input_from_model(items):
+    r = TOOL_FUNCTIONS['deduplicate_sources'](items)
+    assert r['error'] == 'ValueError' and 'items' not in r
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_failure_returns_error_dict(monkeypatch):
+    import tools.deduplicate.tool as module
+    def fail(value):
+        raise RuntimeError('normalization failed')
+    monkeypatch.setattr(module, '_url_key', fail)
+    assert TOOL_FUNCTIONS['deduplicate_sources']([{'url': 'https://example.com'}]) == {
+        'tool': 'deduplicate_sources', 'error': 'RuntimeError', 'message': 'normalization failed'}
+
+
+def test_deduplicate_keeps_distinct_content_urls():
+    urls = ['https://example.com/a?id=1', 'https://example.com/a?id=2',
+            'http://example.com/a?id=1', 'https://example.com/A?id=1',
+            'https://example.com/a/?id=1']
+    assert TOOL_FUNCTIONS['deduplicate_sources']([{'url': u} for u in urls])['item_count'] == len(urls)
+
+
+def test_deduplicate_empty_list_is_valid():
+    assert TOOL_FUNCTIONS['deduplicate_sources']([])['item_count'] == 0
+
