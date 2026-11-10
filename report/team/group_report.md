@@ -95,11 +95,14 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới `deduplicate_sources` | [tool.py](../../starter_v0/tools/deduplicate/tool.py), [TOOL.md](../../starter_v0/tools/deduplicate/TOOL.md) | Loại nguồn trùng URL, giữ item đầu tiên, metadata và thứ tự; không sửa input. Đã đăng ký trong registry và tools.yaml. | Không gọi mạng; tối đa 500 item; URL phải là HTTP(S), không chứa credentials; input sai trả error dict. Không xác minh sự thật hoặc gộp nội dung ở các URL khác nhau. |
+| Unit test tool mới (≥ 3 test/tool) | [test_tools_todo.py](../../starter_v0/tests/test_tools_todo.py), [pytest output](evidence/cp3_pytest.txt) | 5 hàm test mới, 15 trường hợp thực thi: happy path, input xấu, lỗi xử lý, URL nội dung khác nhau và list rỗng. Chạy toàn bộ tests: 82 passed, 14 skipped, 0 failed. | Offline, chặn HTTP thật qua fixture. 14 skip là stub tools cũ; không có test tool mới bị skip. Chưa chứng minh model chọn đúng tool. |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: viết 5 hàm test cho `deduplicate_sources`, gồm 11 biến thể input xấu nên có tổng cộng 15 trường hợp thực thi. Ba stub tool mới đã được thay bằng test thật trong `tests/test_tools_todo.py`.
+
+Ví dụ lỗi được kiểm tra: nếu logic chuẩn hóa bỏ cả tham số nội dung `id`, hai URL `?id=1` và `?id=2` sẽ bị gộp nhầm. Test `test_deduplicate_keeps_distinct_content_urls` kiểm tra chúng vẫn tách biệt; eval chỉ chấm lựa chọn tool/arguments có thể không phát hiện lỗi xử lý này. Đây là tình huống regression được kiểm tra, không phải tuyên bố đã phát hiện bug trong bản gốc.
+
 
 ### B5. Bonus Evidence
 
