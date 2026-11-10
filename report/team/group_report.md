@@ -151,32 +151,23 @@ Nhận xét:
 
 ### B4. Live Chat Evidence
 
-Lấy từ `starter_v0/transcripts/*.transcript.json`.
-
+Lấy từ Transcript: `starter_v0/transcripts/ui_2cc1e79d147f40dabdf692fbb0ee7e7d.transcript.json`
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| 1 | Tin tức AI hôm nay có gì nổi bật? | `lookup(query="AI", topic="news", timeframe="day")` | V1 | Trả về 5 nguồn; agent tổng hợp kèm liên kết. Phản hồi bằng tiếng Anh dù yêu cầu bằng tiếng Việt. |
+| 2 | Lấy các tweet mới nhất giúp tôi. | `clarify(response_type="text")` | V1 | Hỏi “Bạn muốn xem tweet mới nhất của ai?”, trạng thái `waiting_for_user`; không tự đoán tài khoản. |
+| 3 | Elon Musk, lấy 5 tweet. | `timeline(screenname="elonmusk", limit=5)` | V1 | Tiếp nhận thông tin bổ sung, ánh xạ đúng tài khoản và trả về 5 bài đăng kèm liên kết. |
+
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-<<<<<<< HEAD
 | Tool mới `deduplicate_sources` | [tool.py](../../starter_v0/tools/deduplicate/tool.py), [TOOL.md](../../starter_v0/tools/deduplicate/TOOL.md) | Loại nguồn trùng URL, giữ item đầu tiên, metadata và thứ tự; không sửa input. Đã đăng ký trong registry và tools.yaml. | Không gọi mạng; tối đa 500 item; URL phải là HTTP(S), không chứa credentials; input sai trả error dict. Không xác minh sự thật hoặc gộp nội dung ở các URL khác nhau. |
 | Unit test tool mới (≥ 3 test/tool) | [test_tools_todo.py](../../starter_v0/tests/test_tools_todo.py), [pytest output](evidence/cp3_pytest.txt) | 5 hàm test mới, 15 trường hợp thực thi: happy path, input xấu, lỗi xử lý, URL nội dung khác nhau và list rỗng. Chạy toàn bộ tests: 82 passed, 14 skipped, 0 failed. | Offline, chặn HTTP thật qua fixture. 14 skip là stub tools cũ; không có test tool mới bị skip. Chưa chứng minh model chọn đúng tool. |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| UI (lệnh chạy + link dùng thử) | [app.py](../../starter_v0/app.py), [ui_backend.py](../../starter_v0/ui_backend.py), [test_ui.py](../../starter_v0/tests/test_ui.py), [cp5_pytest.txt](evidence/cp5_pytest.txt); chạy python -m streamlit run app.py | Có chat nhiều lượt, xem tool calls/kết quả, lưu/tải transcript, preview và xác nhận/hủy gửi. | Chưa có link public |
 
-Tool unit tests: viết 5 hàm test cho `deduplicate_sources`, gồm 11 biến thể input xấu nên có tổng cộng 15 trường hợp thực thi. Ba stub tool mới đã được thay bằng test thật trong `tests/test_tools_todo.py`.
-
-Ví dụ lỗi được kiểm tra: nếu logic chuẩn hóa bỏ cả tham số nội dung `id`, hai URL `?id=1` và `?id=2` sẽ bị gộp nhầm. Test `test_deduplicate_keeps_distinct_content_urls` kiểm tra chúng vẫn tách biệt; eval chỉ chấm lựa chọn tool/arguments có thể không phát hiện lỗi xử lý này. Đây là tình huống regression được kiểm tra, không phải tuyên bố đã phát hiện bug trong bản gốc.
-
-=======
-| Tool mới (`tools/<tên>/`) | `starter_v0/tools/deduplicate/tool.py`, `TOOL.md`; đăng ký trong `tools/__init__.py` (`TOOL_FUNCTIONS["deduplicate_sources"]`) và `artifacts/tools.yaml` | Model route đúng tới tool ở cả single-turn (G03) và multi-turn (G06): `starter_v0/runs/v3_B_group_anthropic_20261110T192952220848.json` | Tool chỉ xử lý dữ liệu local, `side_effect: false`. Không gộp các URL khác nhau dù cùng nội dung. Lỗi trả error dict |
-| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (5 hàm test `test_deduplicate_*`, trong đó `test_deduplicate_bad_input_from_model` được parametrize); `pytest`: 82 passed, 0 failed | Happy path, input xấu từ model, nhánh lỗi trả error dict, URL khác nhau không bị gộp, list rỗng | Test không gọi mạng; nhánh lỗi được giả lập bằng `monkeypatch` |
-| UI (lệnh chạy + link dùng thử) | *TODO CP5* |  |  |
-
-Tool unit tests: nhóm viết 5 hàm test cho `deduplicate_sources`. Ví dụ unit test bắt được nhưng eval không bắt được: eval G03/G06 chỉ kiểm tra model có **gọi** `deduplicate_sources` hay không (`args: {}`). Nếu hàm chuẩn hóa URL sai (vd. không bỏ `?utm_source=` nên vẫn giữ bản trùng), eval vẫn PASS. Chỉ `test_deduplicate_happy_path` mới phát hiện được, vì nó kiểm tra `item_count` và `removed_count` của kết quả.
->>>>>>> 45ad5c57990a8068fd80d1d2a6d0aa509880dbb2
+Tool unit tests: viết 5 hàm test cho `deduplicate_sources`, gồm 11 biến thể input xấu nên có tổng cộng 15 trường hợp thực thi. Ví dụ lỗi được kiểm tra: nếu logic chuẩn hóa bỏ cả tham số nội dung `id`, hai URL `?id=1` và `?id=2` sẽ bị gộp nhầm.
 
 ### B5. Bonus Evidence
 
