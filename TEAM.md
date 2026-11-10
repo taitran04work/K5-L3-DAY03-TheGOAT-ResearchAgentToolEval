@@ -59,16 +59,28 @@ Báo cáo chi tiết: [report/team/2A202603944_TranHuuTai.md](report/team/2A2026
 
 ---
 
-## HoVaTen-MSSV
+## TranDuyThanh-2A202603919
+
+Báo cáo chi tiết: [report/team/2A202603919_TranDuyThanh.md](report/team/2A202603919_TranDuyThanh.md)
 
 ### Phần việc phụ trách
 
--
+- Coder (BE, FE); phụ trách CP3 — Tool mới và unit test, CP5 — UI và chạy thử.
+- Viết code, kiểm thử và tài liệu liên quan đến tool `deduplicate_sources` và giao diện Streamlit.
 
 ### Đóng góp cụ thể
 
--
+- CP3: xây dựng `deduplicate_sources` để loại nguồn trùng URL, giữ item đầu tiên cùng metadata và thứ tự, không sửa input.
+- Chuẩn hóa URL khi so sánh: bỏ fragment và tham số tracking `utm_*`, `fbclid`, `gclid`; vẫn phân biệt HTTP/HTTPS, path, slash cuối và tham số nội dung để tránh gộp nhầm. Input sai trả về error dict; tool không gọi mạng và chỉ chạy khi model chọn gọi.
+- Đăng ký tool trong `tools/__init__.py`
+- Bổ sung 5 hàm test trong `tests/test_tools_todo.py`, bao phủ 15 trường hợp thực thi, gồm happy path, input xấu, lỗi xử lý, URL khác tham số nội dung và list rỗng. Kết quả kiểm thử được ghi nhận trong báo cáo cá nhân: `85 passed in 0.92s`.
+- CP5: thực hiện giao diện Streamlit `app.py` và phần điều phối `ui_backend.py`; hiển thị tool calls/kết quả, lưu transcript JSON và tải transcript từ UI.
+- Chạy thử chat cơ bản và kiểm thử UI. Phát hiện lỗi đọc 
 
 ### Bằng chứng
 
--
+- Tool và tài liệu: `starter_v0/tools/deduplicate/tool.py`, `starter_v0/tools/deduplicate/TOOL.md`.
+- Tích hợp tool: `starter_v0/tools/__init__.py`, `starter_v0/artifacts/tools.yaml`.
+- Kiểm thử CP3: `starter_v0/tests/test_tools_todo.py`, `report/team/evidence/cp3_pytest.txt`.
+- UI và kiểm thử CP5: `starter_v0/app.py`, `starter_v0/ui_backend.py`, `starter_v0/tests/test_ui.py`, `starter_v0/requirements.txt`.
+- Báo cáo cá nhân: `report/team/2A202603919_TranDuyThanh.md`.
