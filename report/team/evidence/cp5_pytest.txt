@@ -1,0 +1,12 @@
+tests/test_ui.py::test_clarification_and_followup_keep_context PASSED                                                             [ 18%]
+tests/test_ui.py::test_model_cannot_send_without_button_and_button_sends_once PASSED                                              [ 27%]
+tests/test_ui.py::test_cancel_never_executes_send PASSED                                                                          [ 36%]
+tests/test_ui.py::test_provider_error_preserves_partial_tools_and_redacts_key PASSED                                              [ 45%]
+tests/test_ui.py::test_tool_failure_is_visible PASSED                                                                             [ 54%]
+tests/test_ui.py::test_limit_stops_loop PASSED                                                                                    [ 63%]
+tests/test_ui.py::test_sessions_are_isolated PASSED                                                                               [ 72%]
+tests/test_ui.py::test_streamlit_chat_and_reset PASSED                                                                            [ 81%]
+tests/test_ui.py::test_streamlit_send_preview_and_cancel PASSED                                                                   [ 90%]
+tests/test_ui.py::test_streamlit_missing_key_blocks_submission PASSED                                                             [100%]
+
+========================================================== 11 passed in 5.24s ==========================================================
