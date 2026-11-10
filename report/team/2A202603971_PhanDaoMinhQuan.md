@@ -6,7 +6,7 @@
 - MSSV: 2A202603971
 - Email: emiyashirou191@gmail.com
 - GitHub: Shirou191
-- Vai trò: Researcher
+- Vai trò: Researcher, Coder
 
 ## 2. Phần việc phụ trách
 
@@ -49,7 +49,7 @@
   - Bảng B1 hiển thị đủ 4 metric.
 - Chưa tốt:
   - Không để ý giới hạn budget của workspace OpenRouter ($0.01/tháng), nên sau vài run thì bị `403` và nhóm phải chạy lại toàn bộ trên model khác. Hai run baseline của em vì vậy không dùng được làm bằng chứng chính thức.
-  - Lần đầu chèn mục giả thuyết vào báo cáo nhóm làm dính tiêu đề `## 4` vào cuối dòng trước, phải sửa lại.
+  
 - Bài học:
   - Cùng một prompt starter nhưng gpt-4o-mini sai 7/20 case, còn claude-haiku-4-5 chỉ sai 3/20: model mạnh hơn tự từ chối câu ngoài phạm vi và không tự `send` dù prompt bảo làm ngược lại. Vì vậy mọi version phải chạy trên cùng một model thì so sánh mới có ý nghĩa.
   - Nên kiểm tra quota/budget của provider trước khi chạy eval, và ghi rõ model trong báo cáo.
