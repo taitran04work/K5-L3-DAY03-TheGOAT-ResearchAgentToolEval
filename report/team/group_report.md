@@ -8,9 +8,9 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: TheGOAT
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3:  Claude
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -18,7 +18,9 @@
 
 > 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
 
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research agent hỗ trợ tìm kiếm tin tức trên web, tìm bài đăng theo tài khoản hoặc chủ đề,
+đọc nội dung từ URL, xử lý tài liệu nghiên cứu và định dạng kết quả. Với thao tác gửi nội dung,
+agent phải hỏi xác nhận trước khi thực hiện.
 
 **Cách chạy UI:**
 
@@ -44,9 +46,9 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
 
-1.
-2.
-3.
+1. Tin tức AI hôm nay có gì nổi bật?
+2. Lấy 5 tweet mới nhất của Elon Musk.
+3. Tóm tắt bài này: https://nhandan.vn/tong-bi-thu-chu-tich-nuoc-to-lam-tiep-nguyen-chu-tich-lien-minh-nghi-si-huu-nghi-nhat-viet-va-thong-doc-mot-so-dia-phuong-post1001586.html
 
 ## 3. Giải pháp
 
@@ -54,7 +56,13 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 -
 
-## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
+- v1 bổ sung rule không được đoán khi thiếu handle hoặc URL; agent phải gọi
+  `clarify`. Mục tiêu là sửa R10 và R11.
+- v2 bổ sung giới hạn phạm vi research và boundary của `send`: không gọi tool
+  cho câu hỏi toán/coding, và phải hỏi xác nhận trước khi gửi. Mục tiêu là sửa
+  R08, R12 và R14.
+- v3 bổ sung routing và argument convention cho news, đồng thời cho phép gọi
+  nhiều tool khi user yêu cầu cả web và social search. Mục tiêu là sửa R03 và R13.# 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
 ### B1. Version Evidence
 
