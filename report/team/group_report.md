@@ -98,9 +98,27 @@ Ghi chú: với `claude-haiku-4-5`, prompt gốc chỉ làm hỏng 3/20 case. Mo
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
 
+Run: `starter_v0/runs/v3_B_group_anthropic_20261110T192952220848.json` (`v3+pd5217c9a0a41+t52991d62c549`, `claude-haiku-4-5`, 10/10 measured, 0 provider error).
+
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_cross_source_research (single) | Một yêu cầu cần hai nguồn: tin tức + bài báo học thuật | `lookup(topic=news)` + `papers` | PASS: `lookup(query="AI accelerator hardware", topic="news")` + `papers(query="evaluating AI accelerators")` |
+| G02_source_restriction (single) | Tuân thủ giới hạn "chỉ đọc đúng URL này" | `fetch(url="https://www.anthropic.com/research")`, không search thêm | PASS |
+| G03_dedup_utm_fragment (single) | Route tới tool mới khi user đưa danh sách nguồn và yêu cầu loại trùng | `deduplicate_sources` | PASS |
+| G04_monthly_news (single) | `timeframe=month` (bộ base chỉ có day/week) | `lookup(topic=news, timeframe=month)` | PASS |
+| G05_internal_privacy_policy (single) | Câu hỏi về chính sách nội bộ → `policy`, không search web | `policy(policy_area=data_privacy)` | PASS |
+| G06_multiturn_dedup (multi) | Giữ danh sách nguồn qua nhiều lượt rồi route tới tool mới | `deduplicate_sources` | PASS |
+| G07_multiturn_social_preferences (multi) | Carry `search_type=Top` và cập nhật `limit=7` | `social_search(search_type=Top, limit=7)` | PASS |
+| G08_multiturn_monthly_topic_change (multi) | Đổi chủ đề nhưng giữ `topic=news`, `timeframe=month` | `lookup(topic=news, timeframe=month)` | PASS: `query="AI privacy risks"` |
+| G09_multiturn_publish_confirmation (multi) | Đã có nội dung cuối → xin xác nhận trước khi gửi | `clarify(response_type=yes_no)` | PASS: hỏi "I will send this message to Telegram: …" |
+| G10_multiturn_source_switch (multi) | Lượt cuối đổi từ papers sang web news tuần này | `lookup(topic=news, timeframe=week)` | PASS |
+
+Nhận xét:
+
+- 10/10 PASS. Bộ case nhóm viết **chưa đủ khó để phân biệt các version**: mọi case đều có thông tin rõ ràng, nên không đo được các điểm yếu còn lại ở bộ base.
+- G09 PASS nhưng R12 (base) FAIL ở cùng prompt v3. Khác biệt: G09 có nội dung cuối cùng rõ ràng, R12 chỉ nói "bản tin này". Như vậy agent đã biết xin xác nhận `yes_no`; nó chỉ chuyển sang hỏi nội dung (`text`) khi nội dung chưa có. Lỗi R12 là xung đột "thiếu thông tin" vs "xin xác nhận", không phải agent bỏ qua boundary.
+- G03/G06 chỉ kiểm tra routing (`args: {}`). Tính đúng của việc loại trùng do unit test của tool kiểm tra (xem B5a), vì eval chỉ chấm lựa chọn của model.
+- Lần sau nên thêm case khó hơn: thiếu cả nội dung lẫn nơi gửi, hoặc yêu cầu loại trùng nhưng chưa đưa danh sách (kỳ vọng `clarify`).
 
 ### B4. Live Chat Evidence
 
@@ -132,6 +150,11 @@ Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool c�
 | Test challenge (0 skipped / regression test) | `pytest` output |  |  |
 
 Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách sửa, và test regression tương ứng.
+
+Bug tìm được trong code starter (không phải tool, nên chưa tính bonus; ghi lại làm bằng chứng):
+
+1. **`run_eval.normalize_value` không so sánh được list các object.** Hàm này `sorted()` list trước khi so sánh, nên khi `expect.args` chứa list dict (vd. `items` của `deduplicate_sources`) sẽ ném `TypeError: '<' not supported between instances of 'dict' and 'dict'`. Lỗi bị bắt trong `try` của `main()` nên case bị ghi là `provider_error`, làm cả run không hợp lệ. Nhóm tái hiện bằng cách gọi `run_eval.compare_subset` với expect ban đầu của G03. Không sửa `run_eval.py` (ngoài danh sách file được sửa); thay vào đó expect của G03/G06 chỉ kiểm tra tên tool.
+2. **`providers/anthropic_provider.py` không chạy với `anthropic>=1.0`:** xem mục 5. Xử lý bằng cách pin `anthropic<1`.
 
 ### B7. Small Local Model Challenge (bonus)
 
